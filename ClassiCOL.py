@@ -17,7 +17,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio import Align
 import warnings
-warnings.filterwarnings("ignore")     
+warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import re
 import plotly
@@ -38,7 +38,7 @@ from scipy.spatial.distance import braycurtis
 from Bio.Align import substitution_matrices
 import plotly.express as px
 import warnings
-warnings.filterwarnings("ignore")     
+warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
@@ -93,7 +93,7 @@ def do_unimod(path,ptms):#done
             raw_unimod = pd.concat([raw_unimod, df_add], ignore_index=True)
     AAs = []
     for aa,locaa in raw_unimod[[1,4]].values:
-        
+
         if '[' in aa:
             i = aa.split(']')
         else:
@@ -123,12 +123,12 @@ def do_unimod(path,ptms):#done
     unimod_db['mass']=np.array([float(m) for m in unimod_db['mass'].values])
     unimod_db['PTM']=np.array([num.split(']')[-1] for num in unimod_db['PTM'].values])
     unimod_db=unimod_db[unimod_db['PTM'] != '']
-    
+
     unimod_db=unimod_db[unimod_db['type'] != 'Manual']
     drop = [False if ''.join(c for c in element if c.isdigit()==False) != element else True for element in unimod_db['PTM'].values]
     unimod_db['digit']=np.array(drop)
     unimod_db=unimod_db[unimod_db['digit'] == True]
-    
+
     drop = []
     for p,aa in unimod_db[['PTM','AA']].values:
         added=False
@@ -147,14 +147,14 @@ def find_mass(peptide,AA_codes): #sums the masses of the amino acid sequence inp
     mass = 0
     for AA in peptide:
         mass += AA_codes[AA]
-    return mass    
+    return mass
 
 def make_matrix(codes,uni):#done
     doubles = [] #making all pairs of amino acids, here the ptms are also included
     for element1 in list(codes.keys()):
         for element2 in codes.keys():
             doubles.append(element1+'|'+element2)
-    
+
     names = list(codes.keys())+doubles#Add together all amino acids, ptms, doubles and if wanted triples, although the triples take long to compute.
     reduced_matrix = []
     for element in names:
@@ -163,7 +163,7 @@ def make_matrix(codes,uni):#done
             m_el2=find_mass(element2.split('|'),codes)
             if -0.01<=(m_el2-m_el1)<=0.01:
                 if element != element2:
-                    reduced_matrix.append((element2,element,m_el2-m_el1))        
+                    reduced_matrix.append((element2,element,m_el2-m_el1))
     return reduced_matrix
 
 def load_files_mascot(path, name_file):#done
@@ -186,7 +186,7 @@ def load_files_mascot(path, name_file):#done
     df = df[['prot_desc','pep_seq','pep_var_mod','pep_var_mod_pos','pep_scan_title']]
     df['pep_scan_title']=[num.replace('~', '"') for num in df['pep_scan_title'].values]
     df_4_uni= df
-    
+
     df2=df
     protein = {}
     unimod_db, unimod = do_unimod(path,df_4_uni['pep_var_mod'].values)
@@ -224,7 +224,7 @@ def load_files_maxquant(path, name_file):#done
     MQ_file['prot_tax_str']=['no species']*len(MQ_file)
     MQ_file['prot_desc'] = ['no description']*len(MQ_file)
     MQ_file['prot_seq']=['no seq']*len(MQ_file)
-    
+
     add_mods = []
     change_position = []
     for m,mp in MQ_file[['mods','pep_var_mod_pos']].values:
@@ -270,12 +270,12 @@ def load_files_maxquant(path, name_file):#done
         change_position.append(temp)
     MQ_file['pep_var_mod_pos_old']=MQ_file['pep_var_mod_pos'].values
     MQ_file['pep_var_mod_pos']=change_position
-    
+
     MQ_file['pep_var_mod']=add_mods
     df = MQ_file
     #pep_var_mod aanpassen
     #add pep_var_mod_pos
-    
+
     df_4_uni= df[['prot_tax_str','prot_desc','prot_seq','pep_seq','pep_var_mod','pep_var_mod_pos']]
     df2=MQ_file
     protein = {}
@@ -295,7 +295,7 @@ def load_files_maxquant(path, name_file):#done
         else:
             AA_codes[add+a]=AA_codes[a]+float(m)
         ids[add+a]=p
-    
+
     adj_pep=[]
     for i, peptide in enumerate(df2['pep_seq'].values):
         adjusted_pept = ''
@@ -325,7 +325,7 @@ def animals_from_db_input(sequence_db, lim_t,demo):#done
             anim = name.split('|')[1]
         else:
             print('{} has no species'.format(name))
-        
+
         if anim not in input_animals and anim not in skip_animals:
             if lim_t == None:
                 input_animals.append(anim)
@@ -378,10 +378,10 @@ def find_mass_matches(sequence, p_mass,mods,pep,unimod_db,AA_codes,uncertain):
     #     if mod+'_'+aa in mods.keys() and aa in pep: #only if PTM also in sequence
     #         for i in range(1,mods[mod+'_'+aa]+1):
     #             unimod_masses.append(float(mass)*i)#PTM-> no PTM
-    
+
     unimod_masses = unimod_masses+[num - t for num in unimod_masses for t in unimod_db['mass'].values] #ptms added is lower backbone mass
-    unimod_masses = unimod_masses+[num - t for num in unimod_masses for t in unimod_db['mass'].values] #2 ptms added is lower backbone mass 
-    
+    unimod_masses = unimod_masses+[num - t for num in unimod_masses for t in unimod_db['mass'].values] #2 ptms added is lower backbone mass
+
     unimod_masses=set(unimod_masses)
     while start+temp <= end:
         test_seq = sequence[start:start+temp]#stepwise window slide
@@ -433,13 +433,13 @@ def find_mass_matches(sequence, p_mass,mods,pep,unimod_db,AA_codes,uncertain):
             elif added == False:
                 start += 1
                 temp -= 1
-                        
+
         elif True in [True if num-0.015<=test-p_mass<=num+0.015 else False for num in unimod_masses]: #go if same mass or with a new ptm or without an existing one
             possible.append((test_seq,(start,start+temp)))
             start += 1
             temp = 1
         elif test < p_mass:#slide like a caterpilar
-            temp += 1 
+            temp += 1
         else:
             start += 1
             temp -= 1
@@ -538,13 +538,13 @@ def program(seq_db,seq_real,peptides,mass_matrix): #compare in-silico peptide wi
     index_to1 =  [loc for loc in range(0,len(seq_real)) if seq_real[loc]=='-']
     if len(index_to2)>4 or len(index_to1)>4: #more than 5 different locations is too much
         return False,[],[], []
-    
+
     seq_real_new= assign_pairs(index_to2, seq_real,seq_db)
     seq_db_new= assign_pairs(index_to1, seq_db,seq_db)
-    
+
     seq_1=[num for num,loc in seq_db_new]
     seq_2=[num for num,loc in seq_real_new]
-    
+
     adaptation_db=[]
     adaptation_real=[]
     combo=[]
@@ -590,7 +590,7 @@ def do_alignment(s1,s2):#observed, db
                 loc_s2+=1
             else:
                 s1_align += s1[loc_s1]+'-'
-                s2_align += '-'+s2[loc_s2]   
+                s2_align += '-'+s2[loc_s2]
         else:
             s1_align += '-'+s1[loc_s1]
             s2_align += s2[loc_s2]+'-'
@@ -643,7 +643,7 @@ def locate_switches(adapt_observed,adapt_db, seq_observed, seq_db,combo):
                                     include_ptm.append((annot[0][0],annot[0][1], (new_loc[0],i)))
                                 break
                             else:
-                                 test2[0]==covering_seq[new_loc[0]] and test2[1]==covering_seq[i]   
+                                 test2[0]==covering_seq[new_loc[0]] and test2[1]==covering_seq[i]
                                  fixed = True
                                  fixed_it[i]=True
                                  possible.append('from '+annot[0][1]+' to '+annot[0][0])
@@ -698,12 +698,12 @@ def find_ptm_location(ptm, seq,unimod_db,mascot_pos,ids,ptm2=[]):
                     elif '?' in temp_lo:
                         lo = z
                         temp_lo += z
-                        
+
                         if lo not in temp:
                             return False, False
                         found = temp.index(lo)
                         loc_str+=str(found+min(i[2])-1)+'|'+ids[temp_lo]+'|'
-                        
+
                         extra_mass += float(unimod_db['mass'][(unimod_db['PTM']==ids[temp_lo])&(unimod_db['AA']==z)].values)
                         temp_lo = ''
             if '?' in i[0]:
@@ -748,7 +748,7 @@ def find_ptm_location(ptm, seq,unimod_db,mascot_pos,ids,ptm2=[]):
     if '-1' in temp:
         temps.append('-1|'+temp[temp.index('-1')+1])
     return '|'.join(temps), extra_mass
-   
+
 def check_ptms_mascot(ad, ptm, ids):#location of ptm in mascot output? If mascot for example doesn't find a deamidation, it means that no deamidation isobaric switch can occur.
     checks = []
     amount ={}
@@ -807,7 +807,7 @@ def ptm_mass(ptm,unimod_db): #add this mass to the mass of the normal sequence
                     else:
                         mass += float(m)
                         PTMs[p+'_'+a]=1
-                        break       
+                        break
     return mass, PTMs
 
 def massblast(db,ids,PTMs, peptides,p_adjs,unimod_db,mascot_pos,title,charge,remember_good,remember_bad,mass_matrix,cap,remember_peptides, animal,AA_codes,uncertain):#done
@@ -834,14 +834,14 @@ def massblast(db,ids,PTMs, peptides,p_adjs,unimod_db,mascot_pos,title,charge,rem
                 continue
         if (p,PTMs[ilocs]) in done or len(p)>=len(db)-2 or len(p)<6: #do not want to do double work
             continue
-        
+
         if cap==False and p in found_peptide: #If you are only interested in the peptide, than you need only not all possibles
             continue
         done.append((p,PTMs[ilocs]))
         ptm_masses, PTMs_insearch = ptm_mass(PTMs[ilocs],unimod_db)
         p_mass= find_mass(p,AA_codes)+ptm_masses
         p_adj=p_adjs[ilocs]
-        
+
         #remake the peptide as it can have other uncertainty
         exact_match_with_uncertainty = ''
         for l in p:
@@ -893,7 +893,7 @@ def massblast(db,ids,PTMs, peptides,p_adjs,unimod_db,mascot_pos,title,charge,rem
                 seq1 = Seq(p) #original sequence
                 seq2 = Seq(test_seq)#database sequence
                 alignment = do_alignment(seq1, seq2)
-                alteration1 = alignment[1] 
+                alteration1 = alignment[1]
                 alteration2 = alignment[0]
                 if alteration1.count('-')<=3:# three isobaric mistakes allowed, else too much possibilities, and overall almost never correct #math.ceil(len(p)/5) and alteration2.count('-')<=math.ceil(len(p)/5):#allow switches based in peptide length, longer peptides are allowed to have multiple mistakes
                     test, adapt_real, adapt_db,combo = program(alteration1, alteration2, p_adj,mass_matrix)
@@ -915,8 +915,8 @@ def massblast(db,ids,PTMs, peptides,p_adjs,unimod_db,mascot_pos,title,charge,rem
                                         remember_good[p]=remember_good[p]+[(p,str(test_seq),adapt,[location],'isobaric',ptm_loc,title[ilocs],charge[ilocs],PTMs[ilocs])]
                                     else:
                                         remember_good[p]=[(p,str(test_seq),adapt,[location],'isobaric',ptm_loc,title[ilocs],charge[ilocs],PTMs[ilocs])]
-                
-    return final_result, remember_good, remember_bad 
+
+    return final_result, remember_good, remember_bad
 
 def thread_worker(process_executor,x,df2,rg,rb,unimod_db,mass_matrix,ids,test_animal,cap, remember_peptides,AA_codes,uncertain):#done
     name = x[1]
@@ -936,7 +936,7 @@ def thread_worker(process_executor,x,df2,rg,rb,unimod_db,mass_matrix,ids,test_an
         return 'skip'
     print(name)
     future = process_executor.submit(massblast, sequence,ids,df2['pep_var_mod'].values,df2['pep_seq'].values,adj_pep,unimod_db,df2['pep_var_mod_pos'].values,df2['pep_scan_title'].values, df2['charge'].values,rg,rb,mass_matrix,cap,remember_peptides, anim,AA_codes,uncertain)
-    thread_out = future.result() 
+    thread_out = future.result()
     for k,v in thread_out[2].items():
         if k in rb:
             rb[k]=list(set(rb[k]+v))
@@ -966,12 +966,12 @@ def calc_distance_collagen(sequence_db, df):
                     all_locs.append(i)
         all_locs = sorted(list(set(all_locs)))
         locs_dict[seq_name]=len(all_locs) #calculate coverage
-    
+
     columns = []
     for animal in df['animal'].values:
         if animal not in columns:
             columns.append(animal)
-            
+
     index = []
     z = []
     for l, n in df[['protein','animal']].values:
@@ -981,11 +981,11 @@ def calc_distance_collagen(sequence_db, df):
             temp[loc]=locs_dict[l] #should be unique, so easiest to do like this
             z.append(temp)
             index.append(l)
-    
+
     return index, locs_dict, columns, z
 
 def thread_align(i,seq,m,calculator):
-    seq_keep = seq 
+    seq_keep = seq
     if i==seq:
         return (0,seq_keep)
     i = Seq(str(i).replace('&',''))
@@ -1000,15 +1000,15 @@ def thread_align(i,seq,m,calculator):
         dm = calculator.get_distance(align)
         return (dm.matrix[1][0], seq_keep)
     except:
-        return (10,seq_keep) 
-    
+        return (10,seq_keep)
+
 
 def thread_worker2(process_executor,x,m,c):
     i = x[0]
     seq = x[1]
     future = process_executor.submit(thread_align, i,seq,m,c)
-    
-    out = future.result() 
+
+    out = future.result()
     return out
 
 def find_taxons(columns, all_animals):
@@ -1028,7 +1028,7 @@ def find_taxons(columns, all_animals):
                     ncbi_animal = ' '.join(ncbi_animal.split(' ')[:-1])
                 if len(ncbi_animal)<=1:
                     found= True
-                    ncbi_animal = 'unkown'            
+                    ncbi_animal = 'unkown'
             if ncbi_animal != 'unkown':
                 taxon = [(t.rank.name, t.scientific_name) for t in taxon.lineage]
             else:
@@ -1036,7 +1036,7 @@ def find_taxons(columns, all_animals):
         taxons[all_animals[i]]=taxon
     return taxons
 
-def make_plots_coverage_per_animal(df, sequence_db, all_animals, data_array,labels,index, locs_dict, columns, z,names, file_name):    
+def make_plots_coverage_per_animal(df, sequence_db, all_animals, data_array,labels,index, locs_dict, columns, z,names, file_name):
     df_plot=pd.DataFrame(np.array(z),index=index,columns=columns)
     print('calculating taxonomy tree')
     taxons = find_taxons(columns,all_animals)
@@ -1055,7 +1055,7 @@ def make_plots_coverage_per_animal(df, sequence_db, all_animals, data_array,labe
                 continue
             added = False
             z = set(u)&set(j)
-            if len(j)<len(u) and len(j) != 1: #need for minimum, because subspecies and unkown species to ncbi are allocated as 'species' only 
+            if len(j)<len(u) and len(j) != 1: #need for minimum, because subspecies and unkown species to ncbi are allocated as 'species' only
                 test_t = j
             else:
                 test_t = u
@@ -1074,28 +1074,28 @@ def make_plots_coverage_per_animal(df, sequence_db, all_animals, data_array,labe
     fig = ff.create_dendrogram(data_array, orientation='bottom')
     for i in range(len(fig['data'])):
         fig['data'][i]['yaxis'] = 'y2'
-    
+
     # Create Side Dendrogram
     dendro_side = ff.create_dendrogram(taxon_distance, orientation='right',labels=taxon_col)
     dendro_side2 = ff.create_dendrogram(taxon_distance, orientation='right')
     for i in range(len(dendro_side['data'])):
         dendro_side['data'][i]['xaxis'] = 'x2'
-    
+
     # Add Side Dendrogram Data to Figure
     for data in dendro_side['data']:
         fig.add_trace(data)
-    
+
     # Create Heatmap
     dendro_leaves = fig['layout']['xaxis']['ticktext']
     dendro_leaves = list(map(int, dendro_leaves))
     dendro_leaves2 = dendro_side2['layout']['yaxis']['ticktext']
     dendro_leaves2 = list(map(int, dendro_leaves2))
-    
+
 
     heat_data = df_plot.T.values
     heat_data = heat_data[dendro_leaves2,:]
     heat_data = heat_data[:,dendro_leaves]
-    
+
     heat = [go.Heatmap(
         x = dendro_leaves,
         y = dendro_leaves2,
@@ -1104,13 +1104,13 @@ def make_plots_coverage_per_animal(df, sequence_db, all_animals, data_array,labe
         colorscale='Hot',
         type='heatmap'
     )]
-    
+
     heat[0]['x'] = fig['layout']['xaxis']['tickvals']
     heat[0]['y'] = dendro_side['layout']['yaxis']['tickvals']
-    
+
     for data in heat:
         fig.add_trace(data)
-    
+
     fig.update_layout({'width':1500, 'height':2000,
                              'showlegend':False, 'autosize':True
                              })
@@ -1132,7 +1132,7 @@ def make_plots_coverage_per_animal(df, sequence_db, all_animals, data_array,labe
                                         'showticklabels': False,
                                         'ticks':"",
                                         })
-    
+
     # Edit yaxis
     fig.update_layout(yaxis={'domain': [0, .7],
                                       'mirror': False,
@@ -1150,11 +1150,11 @@ def make_plots_coverage_per_animal(df, sequence_db, all_animals, data_array,labe
                                         'zeroline': False,
                                         'showticklabels': False,
                                         'ticks':"",
-                                        
+
                                         })
     fig.write_html(path+'/Output_Classicol/Heatmap_'+file_name+'.html')
     plotly.offline.plot(fig)
-    
+
     return taxon_distance, df_plot.T, heat_data,names,taxon_col
 
 def clustering(X,names):
@@ -1192,7 +1192,7 @@ def knapzak(all_input):
     for element in tree_animals:
         t_ani = t_ani+element
     # tree_animals = sorted([(i,t) for i,t in tree_animals.items()], key=lambda x:x[0])
-    
+
     output = []
     found = False
     save_level=[]
@@ -1217,7 +1217,7 @@ def knapzak(all_input):
                 temp_out_to_check.append(temp_ani)
         save_level = temp_out_count2 #save only former level
         for i in temp_out_to_check:
-            
+
             count = 0
             for x in temp_out_count+save_level:
                 if i == x:
@@ -1254,7 +1254,7 @@ def find_animals(X,names,Y,animals,heat):
     X = X[heat.columns].values
     Y = df_distance_taxon[df_distance_taxon.index.isin(heat.index)]
     Y = Y[heat.index].values
-    
+
     division = [[X,names,Y,animals,heat]]
     while end == False:
         divide = []
@@ -1298,7 +1298,7 @@ def find_animals(X,names,Y,animals,heat):
                 new_X = new_X[new_h.columns]
                 new_names = new_X.columns
                 new_X = new_X[t].values
-                
+
                 new_Y = df_distance_taxon[~df_distance_taxon.index.isin(del_next_it)]
 
                 new_animal = new_Y.index
@@ -1308,17 +1308,17 @@ def find_animals(X,names,Y,animals,heat):
     return results
 
 def new_way(all_animals, all_sequences,df_heatmap_values,df_distance,df_distance_taxon,dfs):
-   
+
     if len(all_animals)==1: #if no animals anymore, or in other words we reached the species level, quit
         return [all_animals]
     temp = df_heatmap_values[all_sequences] #temporary dataframe with only peptides of interest
     temp_d = df_distance[all_sequences] #clustering of the dataframe peptides
-    temp_d = temp_d.loc[all_sequences] 
+    temp_d = temp_d.loc[all_sequences]
     temp_t = df_distance_taxon[all_animals] #taxonomic tree of animals of interest
     temp_t = temp_t.loc[all_animals]
     tree_sequences = clustering(temp_d,temp_d.columns) #recluster the collagens so noo influence of sequences of non-interest
     tree_animals = clustering(temp_t,temp_t.columns)#recluster animals, to quickly find the next branching point
-    
+
     t_ani = []
     for element in sorted(tree_animals.keys())[::-1]: #take next split of the tree
         if len(tree_animals[element])!=1: #the first one will contain all animals, we want the next level
@@ -1327,7 +1327,7 @@ def new_way(all_animals, all_sequences,df_heatmap_values,df_distance,df_distance
             break
     if len(t_ani)==0: #if no animals anymore, or in other words we reached the species level, quit
         return [all_animals]
-    
+
     if len(t_ani)>2:#branched too much, so split at 1 vs rest, with the 1 being the most distant given the found peptides
         index_minidist = []
         minidist = []
@@ -1342,7 +1342,7 @@ def new_way(all_animals, all_sequences,df_heatmap_values,df_distance,df_distance
         animal_branch2 = list(set(animal_branch1)^set(index_minidist))
         print('split {} to {}'.format(t_ani,[animal_branch1,animal_branch2]))
         t_ani = [animal_branch1,animal_branch2]
-        
+
     #check if there is a difference in types of proteins found
     leave_animal = {}
     for r in t_ani: #per branch of animals
@@ -1378,12 +1378,12 @@ def new_way(all_animals, all_sequences,df_heatmap_values,df_distance,df_distance
                 if animal_check == True:
                     done = True #at this level all sequences in a different cluster
                     leave_animal[tuple(r)]=level_i
-                    break 
+                    break
     if len(leave_animal.values()) == 0:
         minimal_separation = 0
     else:
         minimal_separation = min(list(leave_animal.values())) #now we know the location in the collagen tree where all can be separated
-    #Per cluster look at the difference at peptide level 
+    #Per cluster look at the difference at peptide level
     animals_A = dfs[(dfs['animal'].isin(t_ani[0]))]
     pep_A = set(animals_A['found_match'].values)
     animals_B = dfs[(dfs['animal'].isin(t_ani[1]))]
@@ -1407,7 +1407,7 @@ def new_way(all_animals, all_sequences,df_heatmap_values,df_distance,df_distance
         output['all'] = 0
     #1 means go on with animals from B
     #0 and 3 means go on with both (MIX)
-    #2 means go on with animals from A  
+    #2 means go on with animals from A
     #4 means no difference in peptides overall
     score_out = []
     A_done = False
@@ -1432,7 +1432,7 @@ def new_way(all_animals, all_sequences,df_heatmap_values,df_distance,df_distance
         score_out = score_out + score
     mix_done = False
     if 3 in output.values():
-        
+
         mix_done = True
         for t in t_ani:
             if t == t_ani[1] and B_done == True: #not 2 times the same analysis
@@ -1444,18 +1444,18 @@ def new_way(all_animals, all_sequences,df_heatmap_values,df_distance,df_distance
             new_names = list(new_names.columns)
 
             score = new_way(list(t), new_names,df_heatmap_values,df_distance,df_distance_taxon,dfs)
-            score_out = score_out + score    
+            score_out = score_out + score
     if mix_done == False and A_done == False and B_done == False and 0 in output.values():#we need to stop this branch here
         score_out = score_out + [all_animals]
     return score_out
 
 def find_animals2_1(distance,names,taxon_distance,animals,df_heatmap_values,output,dfs):
     output2 = []
-    df_distance = distance 
-    df_distance_taxon = taxon_distance 
+    df_distance = distance
+    df_distance_taxon = taxon_distance
     o1 = []
     o2=[]
-    
+
     for o in output:
         if True in o:
             continue
@@ -1525,7 +1525,7 @@ def find_animals2_1(distance,names,taxon_distance,animals,df_heatmap_values,outp
                     print('deleting {} because lower than 10% of total peptides'.format(i))
                     delete.append(i)
             score = [num for num in score if num not in delete]
-            
+
             combos = []
             for el in score:
                 for num in score:
@@ -1563,9 +1563,9 @@ def find_animals2_1(distance,names,taxon_distance,animals,df_heatmap_values,outp
     return output2, recall
 
 def make_sunburst(dfs,all_animals,df_output,file_name):
-    #sunburst plot to retrace the track 
+    #sunburst plot to retrace the track
     all_taxonomy = find_taxons(list(set(dfs['animal'].values)),all_animals)
-    
+
     labels = []
     values = []
     parents = []
@@ -1578,7 +1578,7 @@ def make_sunburst(dfs,all_animals,df_output,file_name):
     seq_concat = '_'.join(all_peptides)
     weights_bc = [1/seq_concat.count(val) for val in all_peptides]
     for animal in set(df_output['animal'].values):
-        
+
         a_taxon = all_taxonomy[animal]
         labels.append(animal)
         values.append(len(set(dfs['found_match'][dfs['animal']==animal].values)))
@@ -1604,7 +1604,7 @@ def make_sunburst(dfs,all_animals,df_output,file_name):
             else:
                 previous_taxon = t[1]
             if t in combo_taxon or t[1] in parents:
-                
+
                 animals_involved = [key for key,val in all_taxonomy.items() if t in val and key in dfs['animal'].values]
                 if sorted(animals_involved) == sorted(ai):
                     if len(animals_involved) == len(set(dfs['animal'])):
@@ -1614,18 +1614,18 @@ def make_sunburst(dfs,all_animals,df_output,file_name):
                 ai = animals_involved
                 add = len(set(dfs['found_match'][dfs['animal'].isin(animals_involved)].values))
                 add_iso = len(set(dfs['found_match'][(dfs['animal'].isin(animals_involved)) & (dfs['type'].str.contains('Original')==False)].values))
-                
+
                 add_uni = len(set(dfs['found_match'][(dfs['animal'].isin(animals_involved))].values)^set(dfs['found_match'][(dfs['animal'].isin(animals_involved))==False].values)&set(dfs['found_match'][(dfs['animal'].isin(animals_involved))].values))
                 if t[1] in set(df_output['animal'].values):
                     continue
                 if [t[1]] in done and 'species' not in t:
                     parents.append(t[1])
-                    
+
                     break
                 done.append([t[1]])
                 parents.append(t[1])
                 labels.append(t[1])
-                values.append(add) 
+                values.append(add)
                 values_iso.append(add_iso)
                 values_uni.append(add_uni)
                 temp_peptides = set(dfs['mascot_peptide'][dfs['animal'].isin(animals_involved)].values)
@@ -1659,8 +1659,8 @@ def make_sunburst(dfs,all_animals,df_output,file_name):
             values_iso.append(x[3])
             braycurtis_dist.append(x[4])
             done.append((x[1],x[2]))
-    
-    
+
+
     fig = go.Figure()
     fig.add_trace(go.Sunburst(
         labels=labels,
@@ -1715,7 +1715,7 @@ def make_output_file(path,df_plot, df_output, file_name, bc, l):
                             continue
                         done.append(pep+ptm)
                         unique = ''.join(list(df_plot['uniqueness'][(df_plot['found_match']==pep) & (df_plot['taxon']==taxon)].values))
-                        
+
                         if 'U_' in unique:
                             pep = '*'+pep
                         if types != 'Original':
@@ -1747,7 +1747,7 @@ def make_connection_graph(df_output, file_name,final_output,found_animals):
             pro.append('_'.join(temp.split(' ')[1:]))
             added.append('_'.join(temp.split(' ')[1:]))
     df_plot['protein']=pro
-    
+
     unique = []
     for i in df_plot['mascot_peptide'].values:
         temp = sorted(list(set(df_plot['taxon'][df_plot['mascot_peptide']==i])))
@@ -1767,14 +1767,14 @@ def make_connection_graph(df_output, file_name,final_output,found_animals):
                 unique.append('other')
     df_plot['uniqueness']=unique
     return df_plot
- 
+
 def rescore(path, file_loc):
     file_name = file_loc
     file_name_print = file_name.split('/')[-1]
     file_name_print = file_name_print.split('.csv')[0]
     df = pd.read_csv(file_name,names=['a','b','c'])
     df = df.iloc[2:]
-    
+
     add = []
     brackets = ''
     s=0
@@ -1816,11 +1816,11 @@ def rescore(path, file_loc):
     df['score']=score
     df['group']=groups
     df = df[df['species']!='']
-    
+
     df = df[df['score']>0.25]
     df.columns = ['peptides', 'PTM','title','species','score','group']
 
-    
+
     columns = list(set(df['peptides'].values))
     z = []
     y = sorted(list(set(df['species'].values)))
@@ -1831,7 +1831,7 @@ def rescore(path, file_loc):
             sp_to_group[v]=sp_to_group[v]+ '+' +k
         else:
             sp_to_group[v]=k
-            
+
     for a in y:
         temp = [1 if i in set(df['peptides'][df['species']==a].values) else 0 for i in columns]
         z.append(temp)
@@ -1909,10 +1909,10 @@ def rescore(path, file_loc):
     return
 
 if __name__ == "__main__":
-    
+
     AA_codes = {"A" : 71.03711, "C" : 103.00919, "D" : 115.02694, "E" : 129.04259, "F" : 147.06841,
                 "G" : 57.02146, "H" : 137.05891, "L" : 113.08406, "M" : 131.04049, "K" : 128.09496,
-                "N" : 114.04293,"P" : 97.05276, "Q" : 128.05858, "S" : 87.03203,"R" : 156.10111, 
+                "N" : 114.04293,"P" : 97.05276, "Q" : 128.05858, "S" : 87.03203,"R" : 156.10111,
                 "T" : 101.04768, "V" : 99.06841, "W" : 186.07931, "Y" : 163.06333,"I" : 113.08406,'U':168.05,'&':1000}
 
     uncertain = {'B':['D','N'],'Z':['Q','E'],'X':['A','C','D','E','F','G','H','I','L','K','M','N','P','Q','R','S','T','V','W']}
@@ -1983,7 +1983,7 @@ if __name__ == "__main__":
                 contamination.append(False)
         df2['contamination']=contamination
         df2 = df2[df2['contamination']==False]
-        
+
         df2 = df2.drop(['prot_desc'], axis=1)
         drop = []
         done = []
@@ -2010,7 +2010,7 @@ if __name__ == "__main__":
         print('making matrix')
         mass_matrix = make_matrix(AA_codes,unimod_db)
         print('Binary matrix creation successful')
-        
+
         print('starting isoBLAST search')
         end_result = {}
         columns=['animal','protein','mascot_peptide','found_match','switch','location','type','PTM','title','charge']
@@ -2021,7 +2021,7 @@ if __name__ == "__main__":
         rb = {}
         CPUs = multiprocessing.cpu_count()
         print('using {} CPUs'.format(CPUs-2))
-        
+
         check_all_psms = False
         with ProcessPoolExecutor() as process_executor:
             for a in input_animals:
@@ -2051,15 +2051,15 @@ if __name__ == "__main__":
                             continue
                         df_add = pd.DataFrame(data=output[0],columns=columns)
                         df_out=pd.concat([df_out,df_add], ignore_index = True)
-        
-        
+
+
         print('Remove spectra isoBLAST link to trypsin and Lyc-C')
         linked_to_contaminants = []
         for p,t in df_out[['protein','title']].values:
             if 'Pseudomonas' in p or 'trypsin' in p.lower():
                 linked_to_contaminants.append(t)
         dfs = df_out[df_out['title'].isin(linked_to_contaminants) == False]
-        
+
         print('reducing the data to 1 peptide sequence/peptide')
         drop = []
         added = []
@@ -2071,7 +2071,7 @@ if __name__ == "__main__":
                 added.append((p,fm))
         dfs['double']=drop
         dfs = dfs[dfs['double']==False]
-        
+
         print('Remove single hit wonders')#only keep proteins with >1 peptide evidence in other words we do not trust single hit wonders!
         keep = []
         for pro in set(dfs['protein'].values):
@@ -2081,7 +2081,7 @@ if __name__ == "__main__":
                 keep.append(pro)
         dfs = dfs[dfs['protein'].isin(keep)]
         index, locs_dict, columns, z = calc_distance_collagen(sequence_db, dfs)
-        
+
         #separate the uncertain ones from the analysis
         print('removing uncertain peptides that are single hit wonders')
         nots = list(dfs['found_match'][dfs['type']!='With uncertainty'].values)
@@ -2097,15 +2097,15 @@ if __name__ == "__main__":
                 with open(path+'/MISC/collagen_distance.csv', 'w', newline='') as csvfile:
                     writer = csv.writer(csvfile, delimiter=',', lineterminator='\n')
                     writer.writerow(['collagen_seq1','collagen_seq2','distance'])
-                
+
             Z_distance_csv = pd.read_csv(path+'/MISC/collagen_distance.csv', header=0)
             Z_distance = {(key1,key2):value for key1,key2,value in Z_distance_csv[['collagen_seq1','collagen_seq2','distance']].values}
-            
+
             #save each output so this step can go faster in the future
             CPUs = multiprocessing.cpu_count()
             matrix = substitution_matrices.load('BLOSUM90')
             print('calculating distances with {} CPUs'.format(CPUs-2))
-            
+
             names = index
             temp_db = {val:key for key,val in sequence_db.items()}
             all_seqs= [temp_db[key] for key in names]
@@ -2138,7 +2138,7 @@ if __name__ == "__main__":
                         done.append(i)
                     X.append(temp)
                     print('done')
-        
+
             distance=np.array(X)
             labels = names
             print('end calculating distances')
@@ -2148,14 +2148,14 @@ if __name__ == "__main__":
             taxon_distance, df_heatmap_values, heat_data,names,animals = make_plots_coverage_per_animal(dfs, sequence_db, all_animals, distance, labels, index, locs_dict, columns, z, names, file_name)
             #find outliers
             output = find_animals(distance,names,taxon_distance,animals,df_heatmap_values)#eiwit niveau, adapt to filter out bullshit
-        
+
             #find locations in tree based on protein
             print('Saving distances ...')
             distance =pd.DataFrame(np.array(distance),columns=names,index=names)
             for n1 in distance.index:
                 for n2 in distance.columns:
                     Z_distance[(n1,n2)]=float(distance[n2][distance.index==n1].values)
-        
+
             with open(path+'/MISC/collagen_distance.csv', 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',', lineterminator='\n')
                 writer.writerow(['collagen_seq1','collagen_seq2','distance'])
@@ -2167,11 +2167,11 @@ if __name__ == "__main__":
             taxon_distance = pd.DataFrame(np.array(taxon_distance),columns=animals,index=animals)
             print('Starting on the walk down the taxonomic tree')
             output_final, recall = find_animals2_1(distance,names,taxon_distance,animals,df_heatmap_values,output,dfs)#find animal at protein level
-            
+
             print('End of the walk')
             #find uniqueness for each location in tree
             df_output = pd.DataFrame(columns=dfs.columns)
-            
+
             #rescore the isoblasts to the df_output
             df_isobaric = df_output[df_output['type'].str.contains('isobaric')]
             df_other = df_output[df_output['type'].str.contains('isobaric')==False]
@@ -2185,7 +2185,7 @@ if __name__ == "__main__":
             df_isobaric = df_isobaric[df_isobaric['del']==False]
             df_isobaric = df_isobaric.drop(['del'],axis=1)
             df_output = pd.concat([df_other,df_isobaric],ignore_index=True)
-        
+
             for t in output_final:
                 for i in t:
                     i = tuple(i)
@@ -2193,7 +2193,7 @@ if __name__ == "__main__":
                         continue
                     animal_pep = dfs[dfs['animal'].isin(i)]
                     df_output = pd.concat([df_output,animal_pep],ignore_index=True)
-                    
+
             delete_animals = []
             for i in set(df_output['animal'].values):
                 if len(set(df_output['found_match'][df_output['animal']==i]))==1:
@@ -2204,7 +2204,7 @@ if __name__ == "__main__":
             for t in output_final:
                 for i in t:
                     found_animals = found_animals+list(i)
-        
+
             all_taxonomy = find_taxons(found_animals,all_animals)
             if len(all_taxonomy)>0:
                 final_output = {} #check tis block if it is correct!
@@ -2235,17 +2235,3 @@ if __name__ == "__main__":
             with open(path+'/Output_Classicol/ZooMS_results_'+file_name+'.csv', 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',', lineterminator='\n')
                 writer.writerow(['ZooMS analysis found nothing'])
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

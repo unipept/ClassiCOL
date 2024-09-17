@@ -1,0 +1,8 @@
+numpy
+pandas
+biopython
+plotly
+taxoniq
+scipy
+pymaxquant
+requests
