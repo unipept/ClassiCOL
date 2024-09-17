@@ -45,33 +45,43 @@ import maxquant
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
+def collect_fasta_files(base_path, extensions):
+    """Helper function to collect files with given extensions from a directory."""
+    return [
+        os.path.join(root, file)
+        for root, _, files in os.walk(base_path)
+        for file in files
+        if file.endswith(tuple(extensions))
+    ]
+
+
 def crap_f(path, add_fasta):  # done
     print("making database")
     crap = {}
-    files_own = []
-    for fastafile in os.walk(path + "/BoneDB"):
-        for i in fastafile[-1]:
-            if i.endswith(".txt") or i.endswith(".fasta") or i.endswith(".fa"):
-                files_own.append(path + "/BoneDB/" + i)
-    if add_fasta != None:
-        for fastafile in os.walk(add_fasta):
-            for i in fastafile[-1]:
-                if i.endswith(".txt") or i.endswith(".fasta") or i.endswith(".fa"):
-                    files_own.append(add_fasta + "/" + i)
-    done = ""
-    for i in files_own:
-        print(i.split("/")[-1])
-        for record in SeqIO.parse(i, "fasta"):
-            if str(record.description) in done:
+    done = set()
+    extensions = [".txt", ".fasta", ".fa"]
+
+    # collect files from BondDB and given directory
+    files_own = collect_fasta_files(os.path.join(path, "BoneDB"), extensions)
+    if add_fasta:
+        files_own.extend(collect_fasta_files(add_fasta, extensions))
+
+    for file_path in files_own:
+        print(os.path.basename(file_path))
+        for record in SeqIO.parse(file_path, "fasta"):
+            description = str(record.description)
+            if description in done:
                 continue
-            if "J" in record.seq or "O" in record.seq:
-                print("skip", record.description)
+            if any(invalid_char in record.seq for invalid_char in ["J", "O"]):
+                print("skip", description)
                 continue
+
             add = record.seq
             while add in crap:
-                add = Seq(str(add) + "&")  # if seq the same as relative
-            done += str(record.description)
-            crap[add] = record.description
+                add = Seq(str(add) + "&")
+
+            done.add(description)
+            crap[add] = description
     return crap
 
 
