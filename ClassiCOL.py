@@ -195,35 +195,35 @@ def make_matrix(codes, uni):  # done
     return reduced_matrix
 
 
+def find_header_row(file_path, search_term="pep_seq"):
+    """Find the header row in a file containing a specific search term."""
+    with open(file_path, "r") as file:
+        for idx, line in enumerate(file):
+            if search_term in line:
+                return idx
+    raise ValueError(f"Header containing '{search_term}' not found in file.")
+
+
 def load_files_mascot(path, name_file):  # done
     print("open file {}".format(name_file))
-    found = False
-    header_row = 0
-    while found == False:
-        try:
-            df = pd.read_csv(name_file, header=header_row)
-            if "pep_seq" in df.columns:
-                found = True
-            else:
-                header_row += 1
-        except:
-            header_row += 1
-            if header_row > 1000:
-                break
-    df = df.fillna("")
+    # Find the header row containing 'pep_seq' and then read the CSV from that row
+    header_row = find_header_row(name_file, search_term="pep_seq")
+    df = pd.read_csv(name_file, header=header_row, skip_blank_lines=False).fillna("")
+
+    # Store charges and relevant columns
     charges = df["pep_exp_z"].values
     df = df[
         ["prot_desc", "pep_seq", "pep_var_mod", "pep_var_mod_pos", "pep_scan_title"]
     ]
-    df["pep_scan_title"] = [
-        num.replace("~", '"') for num in df["pep_scan_title"].values
-    ]
-    df_4_uni = df
 
-    df2 = df
+    # Vectorized replacement of '~' with '"'
+    df["pep_scan_title"] = df["pep_scan_title"].str.replace("~", '"')
+
+    # Process unimod and protein data
+    unimod_db, unimod = do_unimod(path, df["pep_var_mod"].values)
     protein = {}
-    unimod_db, unimod = do_unimod(path, df_4_uni["pep_var_mod"].values)
     ids = {}
+
     for p, a, m in unimod_db[["PTM", "AA", "mass"]].values:
         if a == "N-term":
             a = "!"
@@ -232,20 +232,16 @@ def load_files_mascot(path, name_file):  # done
         add = "?"
         while add + a in AA_codes.keys():
             add += "?"
-        if a == "!" or a == "*":
-            AA_codes[add + a] = float(m)
-        else:
-            AA_codes[add + a] = AA_codes[a] + float(m)
+        AA_codes[add + a] = float(m) if a in ["!", "*"] else AA_codes[a] + float(m)
         ids[add + a] = p
-    adj_pep = []
-    for i, peptide in enumerate(df2["pep_seq"].values):
-        adjusted_pept = ""
-        for AA in peptide:
-            adjusted_pept += AA + "|"
-        adj_pep.append(adjusted_pept[:-1])
-    df2["adj"] = np.array(adj_pep)
-    df2["charge"] = charges
-    return df, df2, unimod_db, protein, ids, adj_pep
+
+    # Efficient peptide adjustment using join() for string concatenation
+    df["adj"] = df["pep_seq"].apply(lambda x: "|".join(x))
+
+    # Add charge column
+    df["charge"] = charges
+
+    return df, df, unimod_db, protein, ids, df["adj"].values
 
 
 def load_files_maxquant(path, name_file):  # done
@@ -2737,7 +2733,7 @@ if __name__ == "__main__":
         if fixed_mod != None:
             for AA, f in fixed_mod:
                 AA_codes[AA] = AA_codes[AA] + f
-
+        to = time.time()
         if Search_engine == "mascot":
             df, df2, unimod_db, protein, ids, adj_pep = load_files_mascot(
                 path, test_file
@@ -2749,6 +2745,8 @@ if __name__ == "__main__":
         else:
             print("Invalid search engine")
             break
+        t1 = time.time()
+        print("*** Loading files took:", t1 - to, "seconds ***")
         print("getting rid of keratins, Trypsin, Lys-C")
         contamination = []
         for i in df2["prot_desc"].values:
