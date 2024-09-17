@@ -6,41 +6,42 @@ Created on Thu Aug 22 09:57:08 2024
 """
 # Classicol_version_1_0_0.py
 
+# System utilities
 import argparse
-import time
+import csv
 import os
+import random
+import re
+import time
+import warnings
+
+# Data manipulation
 import numpy as np
 import pandas as pd
-import csv
-import Bio
-from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio import Align
-import warnings
+from scipy.cluster.hierarchy import fcluster, linkage
+from scipy.spatial.distance import braycurtis
 
-warnings.filterwarnings("ignore")
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-import re
-import plotly
-import plotly.graph_objs as go
-import plotly.figure_factory as ff
+# Bioinformatics libraries
+from Bio import SeqIO, Align
+from Bio.Seq import Seq
 from Bio.Phylo.TreeConstruction import DistanceCalculator
 from Bio.SeqRecord import SeqRecord
-from Bio.Align import MultipleSeqAlignment
-import taxoniq
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-import multiprocessing
-import scipy
-from scipy.cluster.hierarchy import fcluster
-from scipy.cluster.hierarchy import linkage
-import maxquant
-import random
-from scipy.spatial.distance import braycurtis
-from Bio.Align import substitution_matrices
-import plotly.express as px
-import warnings
+from Bio.Align import MultipleSeqAlignment, substitution_matrices
 
-warnings.filterwarnings("ignore")
+# Parallelism
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+
+# Visualization libraries
+import plotly.graph_objs as go
+import plotly.figure_factory as ff
+import plotly.express as px
+
+# External tools
+import taxoniq
+import maxquant
+
+# Suppress warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
