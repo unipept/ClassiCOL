@@ -166,13 +166,9 @@ def do_unimod(path, ptms):  # done
     return unimod_db, unimod
 
 
-def find_mass(
-    peptide, AA_codes
-):  # sums the masses of the amino acid sequence inputed #done
-    mass = 0
-    for AA in peptide:
-        mass += AA_codes[AA]
-    return mass
+def find_mass(peptide, AA_codes):
+    """sums the masses of the amino acid sequence inputed"""
+    return sum(AA_codes[AA] for AA in peptide)
 
 
 def make_matrix(codes, uni):  # done
@@ -1017,18 +1013,20 @@ def massblast(
     AA_codes,
     uncertain,
 ):  # done
-    done = []
+    db_str = str(db)
+    t0 = time.time()
+    done = set()
     final_result = []
-    done_title = []
-    found_peptide = []
+    done_title = set()
+    found_peptide = set()
     for ilocs, p in enumerate(peptides):
         if title[ilocs] in done_title:
             continue
-        if p + PTMs[ilocs] in remember_peptides.keys():
+        if p + PTMs[ilocs] in remember_peptides:
             find = p + PTMs[ilocs]
             if animal not in remember_peptides[find]:
                 continue  # peptide already tested and not found in test animal
-        done_title.append(title[ilocs])
+        done_title.add(title[ilocs])
         if len(final_result) > 0 and cap == True:
             start_temp = [
                 num for num in final_result if p in num and PTMs[ilocs] in num
@@ -1062,7 +1060,7 @@ def massblast(
             cap == False and p in found_peptide
         ):  # If you are only interested in the peptide, than you need only not all possibles
             continue
-        done.append((p, PTMs[ilocs]))
+        done.add((p, PTMs[ilocs]))
         ptm_masses, PTMs_insearch = ptm_mass(PTMs[ilocs], unimod_db)
         p_mass = find_mass(p, AA_codes) + ptm_masses
         p_adj = p_adjs[ilocs]
@@ -1083,19 +1081,16 @@ def massblast(
             exact_match_with_uncertainty += u
         # Add all the exact matches, als oif X,B or Z in sequence. Only 1 uncertain allowed in output
         added_seq = False
+        search_result = re.search(exact_match_with_uncertainty, db_str)
         if (
-            str(re.search(exact_match_with_uncertainty, str(db))) != "None"
+            search_result
             and len(
-                [
-                    num
-                    for num in re.search(exact_match_with_uncertainty, str(db)).group()
-                    if num not in AA_codes.keys()
-                ]
+                [num for num in search_result.group() if num not in AA_codes.keys()]
             )
             <= 1
         ):  # match all exact matches en remind the location
-            match = re.search(exact_match_with_uncertainty, str(db)).group()
-            location = re.finditer(exact_match_with_uncertainty, str(db))
+            match = search_result.group()
+            location = re.finditer(exact_match_with_uncertainty, db_str)
             locs = []
             for i in location:
                 locs.append(i.span())
@@ -1115,9 +1110,9 @@ def massblast(
                         charge[ilocs],
                     )
                 )
-                found_peptide.append(p)
+                found_peptide.add(p)
             else:
-                found_peptide.append(p)
+                found_peptide.add(p)
                 final_result.append(
                     (
                         p,
@@ -1134,9 +1129,9 @@ def massblast(
         # if isobaric switch was found, no need to check this again for another animal
         if p in remember_good:
             for testing in remember_good[p]:
-                if testing[1] in str(db) and testing[-1] == PTMs[ilocs]:
-                    match = re.search(testing[1], str(db)).group()
-                    location = re.finditer(testing[1], str(db))
+                if testing[1] in db_str and testing[-1] == PTMs[ilocs]:
+                    match = re.search(testing[1], db_str).group()
+                    location = re.finditer(testing[1], db_str)
                     locs = []
                     for i in location:
                         locs.append(i.span())
@@ -1156,7 +1151,7 @@ def massblast(
                         )
                     )
                     added_seq = True
-                    found_peptide.append(p)
+                    found_peptide.add(p)
         # start isoblast
         if added_seq == False:  # if no exact match, than start isobaric switches
             final_addition = False
@@ -1231,7 +1226,7 @@ def massblast(
                                         )
                                     )
                                     final_addition = True  # this could give a problem
-                                    found_peptide.append(p)
+                                    found_peptide.add(p)
                                     if p in remember_good:
                                         remember_good[p] = remember_good[p] + [
                                             (
@@ -1260,7 +1255,8 @@ def massblast(
                                                 PTMs[ilocs],
                                             )
                                         ]
-
+    t1 = time.time()
+    print("*****isoblast time: ", t1 - t0)
     return final_result, remember_good, remember_bad
 
 
@@ -2733,7 +2729,6 @@ if __name__ == "__main__":
         if fixed_mod != None:
             for AA, f in fixed_mod:
                 AA_codes[AA] = AA_codes[AA] + f
-        to = time.time()
         if Search_engine == "mascot":
             df, df2, unimod_db, protein, ids, adj_pep = load_files_mascot(
                 path, test_file
@@ -2745,8 +2740,6 @@ if __name__ == "__main__":
         else:
             print("Invalid search engine")
             break
-        t1 = time.time()
-        print("*** Loading files took:", t1 - to, "seconds ***")
         print("getting rid of keratins, Trypsin, Lys-C")
         contamination = []
         for i in df2["prot_desc"].values:
